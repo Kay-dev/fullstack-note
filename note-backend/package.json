@@ -7,10 +7,8 @@
     "start": "node index.js",
     "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build:ui": "@powershell Remove-Item -Recurse -Force dist -ErrorAction SilentlyContinue && cd ../note-frontend && npm run build && @powershell Copy-Item dist -Recurse ../note-backend && cd ../note-backend",
-    "deploy": "fly deploy",
-    "deploy:full": "npm run build:ui && npm run deploy",
-    "logs:prod": "fly logs"
+    "build:ui": "shx rm -rf dist && cd ../note-frontend && npm run build && shx cp -r dist ../note-backend && cd ../note-backend",
+    "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push"
   },
   "author": "Elan",
   "license": "MIT",
