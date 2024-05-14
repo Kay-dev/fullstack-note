@@ -25,34 +25,33 @@ notesRouter.post('/', (req, res, next) => {
     if (!note || !note.content) {
         return res.status(400).json({ error: 'note.content is missing' })
     }
-    const newNote = Note.create({
+    Note.create({
         content: note.content,
         important: note.important || false
     })
-    newNote.save()
-    .then(savedNote => {
-        res.json(savedNote)
-    })
-    .catch(error => next(error))
+        .then(savedNote => {
+            res.json(savedNote)
+        })
+        .catch(error => next(error))
 })
 
 notesRouter.put('/:id', (req, res, next) => {
     const id = req.params.id
 
     Note.findById(id)
-    .then(note => {
-        if (note) {
-            note.content = req.body.content
-            note.important = req.body.important
-            note.save()
-            .then(updatedNote => {
-                res.json(updatedNote)
-            }).catch(error => next(error))
-        } else {
-            res.status(404).end()
-        }
-    })
-    .catch(error => next(error))
+        .then(note => {
+            if (note) {
+                note.content = req.body.content
+                note.important = req.body.important
+                note.save()
+                    .then(updatedNote => {
+                        res.json(updatedNote)
+                    }).catch(error => next(error))
+            } else {
+                res.status(404).end()
+            }
+        })
+        .catch(error => next(error))
 })
 
 notesRouter.delete('/:id', (req, res, next) => {
