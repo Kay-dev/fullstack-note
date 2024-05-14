@@ -12,10 +12,9 @@ const api = supertest(app)
 // init db before every test
 beforeEach(async () => {
     await Note.deleteMany({})
-    let noteObject = new Note(test_helper.initialNotes[0])
-    await noteObject.save()
-    noteObject = new Note(test_helper.initialNotes[1])
-    await noteObject.save()
+    const noteObjects = test_helper.initialNotes.forEach(note => new Note(note))
+    const promiseArray = noteObjects.map(note => note.save())
+    await Promise.all(promiseArray)
 })
 
 // close db after all tests
