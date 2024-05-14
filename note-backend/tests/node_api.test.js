@@ -70,9 +70,52 @@ test('note without content is not added', async () => {
     }
 
     await api.post("/api/notes")
-    .send(newNote)
-    .expect(400)
+        .send(newNote)
+        .expect(400)
 
     const notes = await test_helper.notesInDb()
     assert.strictEqual(notes.length, test_helper.initialNotes.length)
+})
+
+test('a specific note can be viewed', async () => {
+    const noteAtStart = await test_helper.notesInDb()
+    const noteToView = noteAtStart[0]
+
+    const resultNote = await api.get(`/api/notes/${noteToView.id}`)
+        .expect(200)
+        .expect('Content-Type', /application\/json/)
+    assert.deepStrictEqual(noteToView, resultNote.body)
+})
+
+
+test('a note can be deleted', async () => {
+    const noteAtStart = await test_helper.notesInDb()
+    const noteToDelete = noteAtStart[0]
+
+    await api
+        .delete(`/api/notes/${noteToDelete.id}`)
+        .expect(204)
+    
+    const notesEnd = await test_helper.notesInDb()
+    const contents = notesEnd.map(e => e.content)
+    
+    assert.strictEqual(notesEnd.length, noteAtStart.length - 1)
+    assert(!contents.includes(noteToDelete))
+})
+
+test('a note can be updated', async () => {
+    const noteAtStart = await test_helper.notesInDb()
+    const noteBeforeUpdate = noteAtStart[0]
+
+    const updatedNote = {
+        ...noteBeforeUpdate,
+        content: "async/await simplifies making async calls",
+    }
+
+    const noteAfterUpdate = await api.put(`/api/notes/${noteBeforeUpdate.id}`)
+        .send(updatedNote)
+        .expect(200)
+    
+    assert.strictEqual(noteAfterUpdate.body.content, updatedNote.content)
+    
 })
