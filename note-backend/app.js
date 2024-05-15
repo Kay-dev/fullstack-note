@@ -17,7 +17,7 @@ mongoose.set('strictQuery', false);
 logger.info("connecting to", url);
 
 mongoose.connect(url)
-    .then(result => {
+    .then(() => {
         logger.info("connected to MongoDB");
     }).catch(error => {
         logger.error("error connecting to MongoDB:", error.message);

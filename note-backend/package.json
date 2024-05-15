@@ -8,7 +8,8 @@
     "dev": "cross-env NODE_ENV=development nodemon index.js",
     "test": "cross-env NODE_ENV=test node --test",
     "build:ui": "shx rm -rf dist && cd ../note-frontend && npm run build && shx cp -r dist ../note-backend && cd ../note-backend",
-    "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push"
+    "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push",
+    "lint": "eslint ."
   },
   "author": "Elan",
   "license": "MIT",
@@ -22,8 +23,10 @@
     "mongoose": "^8.3.4"
   },
   "devDependencies": {
+    "@eslint/js": "^9.2.0",
     "@flydotio/dockerfile": "^0.5.7",
     "eslint": "^9.2.0",
+    "globals": "^15.2.0",
     "nodemon": "^3.1.0",
     "supertest": "^7.0.0"
   }

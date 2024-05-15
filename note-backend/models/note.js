@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 
-const noteSechema = new mongoose.Schema({
+const noteSchema = new mongoose.Schema({
     content: {
         type: String,
         minLength: 5,
@@ -15,7 +15,7 @@ const noteSechema = new mongoose.Schema({
 })
 
 // optimize the data fields to be returned
-noteSechema.set('toJSON', {
+noteSchema.set('toJSON', {
     transform: (document, returnedObject) => {
         // change _id to id
         returnedObject.id = returnedObject._id.toString()
@@ -25,6 +25,6 @@ noteSechema.set('toJSON', {
     }
 })
 
-const Note = mongoose.model('Note',noteSechema)
+const Note = mongoose.model('Note',noteSchema)
 
 module.exports = Note

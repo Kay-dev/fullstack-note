@@ -14,18 +14,17 @@ notesRouter.get('/:id', async (req, res, next) => {
     } else {
         res.status(404).end()
     }
-
 })
 
 notesRouter.post('/', async (req, res, next) => {
-    const note = req.body
-    if (!note || !note.content) {
+    const body = req.body
+    if (!body || !body.content) {
         return res.status(400).json({ error: 'note.content is missing' })
     }
 
     const savedNote = await Note.create({
-        content: note.content,
-        important: note.important || false
+        content: body.content,
+        important: body.important || false
     })
     res.status(201).json(savedNote)
 
