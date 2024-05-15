@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema({
     notes: [
         {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'Note' // used to refer to Note model
+            ref: 'Note' // used to refer to Note model when populate
         }
     ]
 })
