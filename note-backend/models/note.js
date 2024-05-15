@@ -8,6 +8,10 @@ const noteSechema = new mongoose.Schema({
         required: true
     },
     important: Boolean,
+    user:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }
 })
 
 // optimize the data fields to be returned
