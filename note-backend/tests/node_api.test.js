@@ -126,8 +126,7 @@ describe('when there is initially some notes saved', () => {
             const userId = users[0].id
             const newNote = {
                 content: 'async/await simplifies making async calls',
-                important: true,
-                userId: userId
+                important: true
             }
 
             await api.post("/api/notes")
@@ -145,8 +144,7 @@ describe('when there is initially some notes saved', () => {
             const users = await test_helper.usersInDb()
             const userId = users[0].id
             const newNote = {
-                important: true,
-                userId: userId
+                important: true
             }
 
             await api.post("/api/notes")
