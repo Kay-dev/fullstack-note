@@ -1,16 +1,17 @@
-const { test, after, beforeEach, describe } = require('node:test')
+const {expect, test, beforeEach, beforeAll, afterAll, describe} =  require('@jest/globals');
+
 const mongoose = require('mongoose')
 const supertest = require('supertest')
-const assert = require('node:assert')
-const app = require('../app')
 const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken');
+
+const app = require('../app')
 const Note = require('../models/note.js')
 const User = require('../models/user.js')
 const test_helper = require('./test_helper')
 
-// wrap express app into superagent object.
+// wrap express app into superagent object. we doesn't need listen to any ports
 const api = supertest(app)
-
 
 
 describe('when there is initially one user in db', () => {
@@ -34,9 +35,9 @@ describe('when there is initially one user in db', () => {
             .expect('Content-Type', /application\/json/)
 
         const usersAtEnd = await test_helper.usersInDb()
-        assert.strictEqual(usersAtEnd.length, userAtStart.length + 1)
+        expect(usersAtEnd).toHaveLength(userAtStart.length + 1)
         const usernames = usersAtEnd.map(u => u.username)
-        assert(usernames.includes(newUser.username))
+        expect(usernames).toContain(newUser.username)
 
     })
 
@@ -53,14 +54,22 @@ describe('when there is initially one user in db', () => {
             .expect('Content-Type', /application\/json/)
 
         const usersAtEnd = await test_helper.usersInDb()
-        assert(result.body.error.includes('username must be unique'))
-        assert.strictEqual(usersAtEnd.length, userAtStart.length)
-
+        expect(usersAtEnd).toHaveLength(userAtStart.length)
+        expect(result.body.error).toContain('username must be unique')
     })
 })
 
 
 describe('when there is initially some notes saved', () => {
+
+    let token;
+    beforeAll(async ()=>{
+        await User.deleteMany({})
+        const passwordHash = await bcrypt.hash('sekret', 10)
+        const user = await User.create({ username: 'root', passwordHash })
+        token = jwt.sign({username: user.username, id: user._id}, process.env.SECRET, {expiresIn: '1h'})
+    })
+
     // init db before every test
     beforeEach(async () => {
         await Note.deleteMany({})
@@ -80,15 +89,14 @@ describe('when there is initially some notes saved', () => {
 
     test('all notes are returned', async () => {
         const response = await api.get('/api/notes')
-
-        assert.strictEqual(response.body.length, test_helper.initialNotes.length)
+        expect(response.body).toHaveLength(test_helper.initialNotes.length)
     })
 
     test('the specific note is within the returned notes', async () => {
         const response = await api.get('/api/notes')
 
         const contents = response.body.map(e => e.content)
-        assert(contents.includes('HTML is easy'))
+        expect(contents).toContain('HTML is easy')
     })
 
     describe('viewing a specific note', () => {
@@ -100,7 +108,7 @@ describe('when there is initially some notes saved', () => {
             const resultNote = await api.get(`/api/notes/${noteToView.id}`)
                 .expect(200)
                 .expect('Content-Type', /application\/json/)
-            assert.deepStrictEqual(noteToView, resultNote.body)
+            expect(resultNote.body).toEqual(noteToView)
         })
 
         test('fails with statuscode 404 if note does not exist', async () => {
@@ -122,37 +130,35 @@ describe('when there is initially some notes saved', () => {
 
     describe('addition of a new note', () => {
         test('a valid note can be added', async () => {
-            const users = await test_helper.usersInDb()
-            const userId = users[0].id
             const newNote = {
                 content: 'async/await simplifies making async calls',
-                important: true
+                important: true,
             }
 
             await api.post("/api/notes")
                 .send(newNote)
+                .set('Authorization', `Bearer ${token}`)
                 .expect(201)
                 .expect('Content-Type', /application\/json/)
 
             const notes = await test_helper.notesInDb()
-            assert.strictEqual(notes.length, test_helper.initialNotes.length + 1)
+            expect(notes).toHaveLength(test_helper.initialNotes.length + 1)
             const contents = notes.map(e => e.content)
-            assert(contents.includes("async/await simplifies making async calls"))
+            expect(contents).toContain("async/await simplifies making async calls")
         })
 
         test('note without content is not added', async () => {
-            const users = await test_helper.usersInDb()
-            const userId = users[0].id
             const newNote = {
                 important: true
             }
 
             await api.post("/api/notes")
                 .send(newNote)
+                .set('Authorization', `Bearer ${token}`)
                 .expect(400)
 
             const notes = await test_helper.notesInDb()
-            assert.strictEqual(notes.length, test_helper.initialNotes.length)
+            expect(notes).toHaveLength(test_helper.initialNotes.length)
         })
     })
 
@@ -169,8 +175,8 @@ describe('when there is initially some notes saved', () => {
             const noteAfterUpdate = await api.put(`/api/notes/${noteBeforeUpdate.id}`)
                 .send(updatedNote)
                 .expect(200)
-
-            assert.strictEqual(noteAfterUpdate.body.content, updatedNote.content)
+            
+            expect(noteAfterUpdate.body.content).toBe(updatedNote.content)
 
         })
     })
@@ -188,14 +194,14 @@ describe('when there is initially some notes saved', () => {
             const notesEnd = await test_helper.notesInDb()
             const contents = notesEnd.map(e => e.content)
 
-            assert.strictEqual(notesEnd.length, noteAtStart.length - 1)
-            assert(!contents.includes(noteToDelete))
+            expect(notesEnd.length).toBe(noteAtStart.length - 1)
+            expect(contents).not.toContain(noteToDelete.content)            
         })
     })
 })
 
 // close db after all tests
-after(async () => {
+afterAll(async () => {
     await mongoose.connection.close()
 })
 
