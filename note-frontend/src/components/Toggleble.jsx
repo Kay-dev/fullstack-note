@@ -1,5 +1,6 @@
 /* eslint-disable react/display-name */
 import { forwardRef, useState, useImperativeHandle } from 'react'
+import PropTypes from 'prop-types'
 
 const Toggleble = forwardRef((props, ref) => {
     const [visible, setVisible] = useState(false)
@@ -11,7 +12,7 @@ const Toggleble = forwardRef((props, ref) => {
         setVisible(!visible)
     }
 
-    useImperativeHandle(ref, () =>{
+    useImperativeHandle(ref, () => {
         return {
             toggleVisibility
         }
@@ -28,7 +29,10 @@ const Toggleble = forwardRef((props, ref) => {
             </div>
         </div>
     )
+})
+
+Toggleble.propTypes = {
+    buttonLabel: PropTypes.string.isRequired
 }
 
-)
 export default Toggleble
