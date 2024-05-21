@@ -4,11 +4,13 @@ import Note from './components/Note'
 import noteService from './services/notes'
 import Notification from './components/Notification'
 import loginService from './services/login'
+import Toggleble from './components/Toggleble'
+import LoginForm from './components/LoginForm'
+import NoteForm from './components/NoteForm'
 
 function App() {
 
   const [notes, setNotes] = useState([])
-  const [newNote, setNewNote] = useState("")
   const [showAll, setShowAll] = useState(true)
   const [errorMessage, setErrorMessage] = useState(null)
   const [username, setUsername] = useState('')
@@ -33,37 +35,27 @@ function App() {
     }
   }, [])
 
-  const handleLogin = async (event) => {
-    event.preventDefault()
+
+  const login = async (username, password) => {
     try {
       const user = await loginService.login({ username, password })
       window.localStorage.setItem('loggedUser', JSON.stringify(user))
       noteService.setToken(user.token)
       setUser(user)
-      setUsername('')
-      setPassword('')
     } catch (error) {
       setErrorMessage('Wrong credentials')
       setTimeout(() => {
         setErrorMessage(null)
       }, 5000);
     }
+
   }
 
-  const addNote = (event) => {
-    event.preventDefault();
-    const noteObj = { content: newNote, important: Math.random() < 0.5 }
-
-    noteService.create(noteObj)
-      .then(data => {
-        setNotes([...notes, data])
-        setNewNote("")
-      })
+  const createNote = async (note) => {
+    const data = await noteService.create(note)
+    setNotes([...notes, data])
   }
 
-  const changeNewNote = (event) => {
-    setNewNote(event.target.value)
-  }
 
   const notesToShow = showAll ? notes : notes.filter(note => note.important === true)
 
@@ -96,32 +88,16 @@ function App() {
 
 
   const loginForm = () => (
-    <form onSubmit={handleLogin}>
-      <div>
-        <label htmlFor="username">username:</label>
-        <input
-          type="text"
-          value={username}
-          onChange={({ target }) => setUsername(target.value)}
-        />
-      </div>
-      <div>
-        <label htmlFor="password">password:</label>
-        <input
-          type="password"
-          value={password}
-          onChange={({ target }) => setPassword(target.value)}
-        />
-      </div>
-      <button type="submit">login</button>
-    </form>
+    <Toggleble key="login" buttonLabel="log in">
+      <LoginForm login={login} />
+    </Toggleble>
   )
 
+
   const noteForm = () => (
-    <form onSubmit={addNote}>
-      <input type="text" value={newNote} onChange={changeNewNote} />
-      <button type="submit">Save</button>
-    </form>
+    <Toggleble key="note" buttonLabel="new note">
+      <NoteForm createNote={createNote}/>
+    </Toggleble>
   )
 
   return (
