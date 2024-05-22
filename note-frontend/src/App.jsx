@@ -1,28 +1,26 @@
 import { useEffect, useState, useRef } from 'react'
+import { useDispatch } from 'react-redux'
 import './App.css'
-import Note from './components/Note'
+import Notes from './components/Notes'
 import noteService from './services/notes'
 import Notification from './components/Notification'
 import loginService from './services/login'
 import Toggleble from './components/Toggleble'
 import LoginForm from './components/LoginForm'
 import NoteForm from './components/NoteForm'
+import { fetchNotes,addNote } from './store/modules/noteStore'
+import VisibilityFilter from './components/VisibilityFilter'
 
 function App() {
 
-  const [notes, setNotes] = useState([])
-  const [showAll, setShowAll] = useState(true)
   const [errorMessage, setErrorMessage] = useState(null)
   const [user, setUser] = useState(null)
-
   const noteFormRef = useRef()
 
+  const dispatch = useDispatch()
+
   useEffect(() => {
-    noteService
-      .getAll()
-      .then(data => {
-        setNotes(data)
-      })
+    dispatch(fetchNotes())
   }, [])
 
   // check if user is logged in and set token
@@ -48,38 +46,11 @@ function App() {
         setErrorMessage(null)
       }, 5000);
     }
-
   }
 
   const createNote = async (note) => {
     noteFormRef.current.toggleVisibility()
-    const data = await noteService.create(note)
-    setNotes([...notes, data])
-  }
-
-
-  const notesToShow = showAll ? notes : notes.filter(note => note.important === true)
-
-  const toogleShowAll = () => {
-    setShowAll(!showAll)
-  }
-
-  const toggleImportance = (id) => {
-    const filterNote = notes.find(note => note.id === id)
-    // copy a new note object and change the importance
-    const changedNote = { ...filterNote, important: !filterNote.important }
-    // update serverside data and re-render
-    noteService.update(id, changedNote)
-      .then(data => {
-        setNotes(notes.map(note => note.id !== id ? note : data))
-      })
-      .catch(() => {
-        setErrorMessage(`the note ${filterNote.content} was already removed from server`)
-        setTimeout(() => {
-          setErrorMessage(null)
-        }, 5000)
-        setNotes(notes.filter(note => note.id !== id))
-      })
+    dispatch(addNote(note))
   }
 
   const logout = () => {
@@ -94,9 +65,8 @@ function App() {
     </Toggleble>
   )
 
-
   const noteForm = () => (
-    <Toggleble key="note" buttonLabel="new note" ref={noteFormRef}>
+    <Toggleble key="note"  buttonLabel="new note" ref={noteFormRef}>
       <NoteForm createNote={createNote}/>
     </Toggleble>
   )
@@ -106,14 +76,9 @@ function App() {
       <h1>Notes</h1>
       <Notification message={errorMessage} />
       {user === null ? loginForm() : noteForm()}
-      <button onClick={toogleShowAll}>show {showAll ? 'Important' : 'All'}</button>
       {user && <button onClick={logout}>log out</button>}
-      <ul>
-        {notesToShow.map(note => (
-          <Note key={note.id} note={note} toggleImportance={() => { toggleImportance(note.id) }} />
-        ))}
-      </ul>
-
+      <VisibilityFilter/>
+      <Notes/>
     </>
   )
 }
