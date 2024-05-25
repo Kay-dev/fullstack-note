@@ -1,11 +1,24 @@
-const NoteForm = ({createNote}) => {
+import {createNote} from '../services/notes';
+import {useMutation, useQueryClient} from '@tanstack/react-query'
+
+const NoteForm = () => {
+
+    const queryClient = useQueryClient()
+
+    const newNoteMutation = useMutation({
+        mutationFn: createNote,
+        // disable old data in cache
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['notes']})
+        }
+    })
 
     const handleSubmitNote = (event) => {
         event.preventDefault();
         const content = event.target.note.value
         event.target.note.value=''
         const noteObj = { content: content, important: Math.random() < 0.5 }
-        createNote(noteObj)
+        newNoteMutation.mutate(noteObj)
     }
 
 

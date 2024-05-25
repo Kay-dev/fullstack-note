@@ -1,8 +1,8 @@
 /* eslint-disable react/display-name */
-import { forwardRef, useState, useImperativeHandle } from 'react'
+import {  useState } from 'react'
 import PropTypes from 'prop-types'
 
-const Toggleble = forwardRef((props, ref) => {
+const Toggleble = (props) => {
     const [visible, setVisible] = useState(false)
 
     const hideWhenVisible = { display: visible ? 'none' : '' }
@@ -11,12 +11,6 @@ const Toggleble = forwardRef((props, ref) => {
     const toggleVisibility = () => {
         setVisible(!visible)
     }
-
-    useImperativeHandle(ref, () => {
-        return {
-            toggleVisibility
-        }
-    })
 
     return (
         <div>
@@ -29,7 +23,7 @@ const Toggleble = forwardRef((props, ref) => {
             </div>
         </div>
     )
-})
+}
 
 Toggleble.propTypes = {
     buttonLabel: PropTypes.string.isRequired
